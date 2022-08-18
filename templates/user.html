@@ -17,7 +17,11 @@
     </style>
 </head>
     <body>
-        <p>Hallo {{naam}}</p>
+        <form method="POST">
+            <button type="submit" name="home" value="home">Start</button>
+        </form>
+        <br>
+        <p>{{naam}}</p>
         <form method="POST" enctype="multipart/form-data">
             <input type="file" name="image">
             <input type="submit" value="uploaden" name="upload">

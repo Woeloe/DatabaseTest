@@ -1,68 +1,39 @@
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
-import pyrebase
-import json
+from functools import reduce
+from flask import Flask, redirect, render_template, request
+from databaseAPI import *
 
-#cloudinary setup
-cloudinary.config(
-    cloud_name = 'personen',
-    api_key = '431772985299319',
-    api_secret = 'fqUEX3GFsUcqMtObHXGzOwtQqwY', 
-    secure = True
-)
+app = Flask(__name__)
 
-#firebase setup
-firebaseConfig = {"apiKey": "AIzaSyAZAeWgkHoF4pqCPARjdRR6-xd7_KwwPz4",
-  "authDomain": "database-personen.firebaseapp.com",
-  "databaseURL": "https://database-personen-default-rtdb.europe-west1.firebasedatabase.app",
-  "projectId": "database-personen",
-  "storageBucket": "database-personen.appspot.com",
-  "messagingSenderId": "923455214562",
-  "appId": "1:923455214562:web:20daf65f425eaed4849fbb",
-  "measurementId": "G-NRPGJ0DKS7"
-  }
+@app.route("/", methods=["POST", "GET"])
+def home():
+    if(request.form.get("login") == "Login"):
+        naam = request.form.get("naam").lower()
+        return redirect(f"/{naam}")
+    if(request.form.get("create") == "Create"):
+        naam = request.form.get("naam").lower()
+        createUser(naam)
+        return redirect(f"/{naam}")
+    return render_template("index.html")
 
-firebase = pyrebase.initialize_app(firebaseConfig)
-db = firebase.database()
+@app.route("/<naam>", methods=["POST", "GET"])
+def user(naam):
+    pics = download(naam)
 
+    if(request.form.get("home") is not None):
+        return redirect(f"/")
 
-
-def upload(file, name):  
-  response = cloudinary.uploader.upload(file,
-      folder = "personen/" + name + "/")
-  url = response['url']
-
-  download = db.child(name).get()
-  pics = download.val()
-
-  if(pics != None):
-    pics.append(url)
-    db.child(name).set(pics)
-
-
-def delete(url, name):
-  db_download = db.child(name).get()
-  pics = db_download.val()
-  text = url.split("/", 7)[-1].split(".")[0]
-  
-  print(text)
-
-  pics.remove(url)
-  db.child(name).set(pics)
-  cloudinary.uploader.destroy(text)
-
-def download(name):
-  download = db.child(name).get()
-  pics = download.val()
-  return pics
-
-def createUser(name):
-  data = ["x"]
-  download = db.child(name).get().val()
-  if(type(download) != list):
-    db.child(name).set(data)
-    print("User added")
-  else:
-    print("User already exists")
+    if(request.form.get("upload") == "uploaden"):
+        path = request.files["image"]
+        upload(path, naam)
+        return redirect(f"/{naam}")
     
+    if(request.form.get("delete") is not None):
+        url = request.form.get("url")
+        delete(url, naam)
+        return redirect(f"/{naam}")
+    return render_template("user.html", naam = naam , pics = pics)
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True, host='0.0.0.0', port=5000)

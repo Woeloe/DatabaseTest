@@ -1,4 +1,6 @@
+from distutils.log import debug
 from functools import reduce
+from typing import List
 from flask import Flask, redirect, render_template, request
 from databaseAPI import *
 
@@ -8,7 +10,8 @@ app = Flask(__name__)
 def home():
     if(request.form.get("login") == "Login"):
         naam = request.form.get("naam").lower()
-        return redirect(f"/{naam}")
+        if(type(download(naam)) == list):
+            return redirect(f"/{naam}")
     if(request.form.get("create") == "Create"):
         naam = request.form.get("naam").lower()
         createUser(naam)

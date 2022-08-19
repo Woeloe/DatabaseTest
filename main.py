@@ -1,10 +1,12 @@
-from distutils.log import debug
-from functools import reduce
-from typing import List
-from flask import Flask, redirect, render_template, request
+import os
+
+from flask import Flask, redirect, render_template, request, url_for
 from databaseAPI import *
 
+UPLOAD_FOLDER = 'media'
+
 app = Flask(__name__)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 @app.route("/", methods=["POST", "GET"])
 def home():
@@ -26,8 +28,15 @@ def user(naam):
         return redirect(f"/")
 
     if(request.form.get("upload") == "uploaden"):
-        path = request.files["image"]
+        image = request.files["image"]
+        imageName = image.filename
+
+    
+        image.save(os.path.join(app.config["UPLOAD_FOLDER"], imageName))
+
+        path = os.path.join(app.config["UPLOAD_FOLDER"], imageName)        
         upload(path, naam)
+        
         return redirect(f"/{naam}")
     
     if(request.form.get("delete") is not None):

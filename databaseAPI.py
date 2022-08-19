@@ -4,6 +4,8 @@ import cloudinary.api
 import pyrebase
 import json
 
+from sqlalchemy import null
+
 #cloudinary setup
 cloudinary.config(
     cloud_name = 'personen',
@@ -65,7 +67,7 @@ def download(name):
     return pics
 
 def createUser(name):
-  if(name != ""):
+  if(name != "" and name != None and name != null):
     data = ["x"]
     download = firebase_db.child(name).get().val()
     if(type(download) != list):
